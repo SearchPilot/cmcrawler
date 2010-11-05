@@ -58,34 +58,37 @@ for l in linkz:
 			# crawler only records the FIRST time it finds a link. If a link is on 20 pages
 			# it will still only show up once in the log.
 			for j in bs.findAll('a', {'href':True}):
-				testresult = 0
-				absUrl = urlparse.urljoin(l, j['href'])
-				absUrl = absUrl.strip()
-				parsedUrl = urlparse.urlparse(absUrl)
-				# check for any images that snuck in via a link
-				giffound = absUrl.find('.gif')
-				jpgfound = absUrl.find('.jpg')
-				pngfound = absUrl.find('.png')
-				if (giffound == -1) & (jpgfound == -1) & (pngfound == -1):
-					filetype = 1
-				else:
-					filetype = 2
-				if parsedUrl.port == 80:
-					hostUrl = parsedUrl.netloc[:-3]
-				else:
-					hostUrl = parsedUrl.netloc
-					absUrl = urlparse.urlunparse((parsedUrl.scheme, hostUrl, parsedUrl.path, parsedUrl.params, parsedUrl.query, parsedUrl.fragment))
-				if (parsedUrl.scheme == 'http') & \
-				((parsedUrl.netloc.endswith('.' + hostRoot)) | (parsedUrl.netloc == hostRoot)) & \
-				(absUrl not in linkz):
-					tester = absUrl.find('#')
-					if tester == -1:
-						cleanUrl = absUrl.strip()
-						print '\t' + cleanUrl + '\tpage'
-						linkz.append(cleanUrl)
-						counter = counter + 1
+				try:
+					testresult = 0
+					absUrl = urlparse.urljoin(l, j['href'])
+					absUrl = absUrl.strip()
+					parsedUrl = urlparse.urlparse(absUrl)
+					# check for any images that snuck in via a link
+					giffound = absUrl.find('.gif')
+					jpgfound = absUrl.find('.jpg')
+					pngfound = absUrl.find('.png')
+					if (giffound == -1) & (jpgfound == -1) & (pngfound == -1):
+						filetype = 1
 					else:
-						counter = counter + 1
+						filetype = 2
+					if parsedUrl.port == 80:
+						hostUrl = parsedUrl.netloc[:-3]
+					else:
+						hostUrl = parsedUrl.netloc
+						absUrl = urlparse.urlunparse((parsedUrl.scheme, hostUrl, parsedUrl.path, parsedUrl.params, parsedUrl.query, parsedUrl.fragment))
+					if (parsedUrl.scheme == 'http') & \
+					((parsedUrl.netloc.endswith('.' + hostRoot)) | (parsedUrl.netloc == hostRoot)) & \
+					(absUrl not in linkz):
+						tester = absUrl.find('#')
+						if tester == -1:
+							cleanUrl = absUrl.strip()
+							print '\t' + cleanUrl + '\tpage'
+							linkz.append(cleanUrl)
+							counter = counter + 1
+						else:
+							counter = counter + 1
+				except:
+					pass
 			
 # now to try to grab some images on the same page
 # the crawler records EVERY place images are found, not just the first. Long story, but we needed this at Portent.
