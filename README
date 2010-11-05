@@ -1,0 +1,28 @@
+cmcrawler.py
+
+By Ian Lurie
+Using the following amazing libraries, without which I'd be hopelessly out of luck:
+urllib2
+BeautifulSoup
+urlparse
+
+cmcrawler.py is meant to be a light, fast, Python-driven crawler.
+
+To use the crawler, go to your command line (ACK, I KNOW!) and type 
+
+python cmcrawler.py http://www.siteurl.com
+
+It'll then cheerfully go off and start crawling your site, outputting the result as it goes. It doesn't save the output anywhere! You can cut-and-paste the result if you're really insane, or do the easier:
+
+python cmcrawler.py http://www.siteurl.com >> filename.txt
+
+That'll write the results to a text file, instead.
+
+If none of this makes sense to you, you probably shouldn't be messing with this. I'm not saying that to be mean. This is a crawler written by someone who knows juuuuust enough to be dangerous. As such, you should be very, very careful with it.
+
+I would greatly appreciate any improvements/tweaks that folks make. Please check them back into GIT or send 'em to me. This is a community thing, I hope.
+
+
+
+KNOWN ISSUES/TWEAKS NEEDED
+See the GIThub page at https://github.com/wrttnwrd/cmcrawler/issues
