@@ -5,6 +5,7 @@
 import sys
 import httplib
 import urllib2
+from urllib2 import Request, urlopen, URLError
 import urlparse
 import string
 from BeautifulSoup import BeautifulSoup, SoupStrainer
@@ -45,78 +46,89 @@ for l in linkz:
 	jpgfound = l.find('.jpg')
 	pngfound = l.find('.png')
 	pdffound = l.find('.pdf')
-	conn = urllib2.urlopen(l) # get the url
-	src = conn.read() # read page contents
-	code = conn.code # read response code - later need to make this more sensible
-	links = SoupStrainer('a') # grab all anchors
-	imgs = SoupStrainer('img') # grab all img elements
-	bs = BeautifulSoup(src, parseOnlyThese=links) # parse for anchors
 	try:
-		if (giffound == -1) & (jpgfound == -1) & (pngfound == -1) & (pdffound == -1): 
-			print "Crawling\t",l,"\t",code
-			# loop through all of the anchors found on the page
-			# crawler only records the FIRST time it finds a link. If a link is on 20 pages
-			# it will still only show up once in the log.
-			for j in bs.findAll('a', {'href':True}):
-				try:
-					testresult = 0
-					absUrl = urlparse.urljoin(l, j['href'])
-					absUrl = absUrl.strip()
-					parsedUrl = urlparse.urlparse(absUrl)
-					# check for any images that snuck in via a link
-					giffound = absUrl.find('.gif')
-					jpgfound = absUrl.find('.jpg')
-					pngfound = absUrl.find('.png')
-					if (giffound == -1) & (jpgfound == -1) & (pngfound == -1):
-						filetype = 1
-					else:
-						filetype = 2
-					if parsedUrl.port == 80:
-						hostUrl = parsedUrl.netloc[:-3]
-					else:
-						hostUrl = parsedUrl.netloc
-						absUrl = urlparse.urlunparse((parsedUrl.scheme, hostUrl, parsedUrl.path, parsedUrl.params, parsedUrl.query, parsedUrl.fragment))
-					if (parsedUrl.scheme == 'http') & \
-					((parsedUrl.netloc.endswith('.' + hostRoot)) | (parsedUrl.netloc == hostRoot)) & \
-					(absUrl not in linkz):
-						tester = absUrl.find('#')
-						if tester == -1:
-							cleanUrl = absUrl.strip()
-							print '\t' + cleanUrl + '\tpage'
-							linkz.append(cleanUrl)
-							counter = counter + 1
+		conn = urllib2.urlopen(l) # get the url
+		src = conn.read() # read page contents
+		code = conn.code # read response code - later need to make this more sensible
+		links = SoupStrainer('a') # grab all anchors
+		imgs = SoupStrainer('img') # grab all img elements
+		bs = BeautifulSoup(src, parseOnlyThese=links) # parse for anchors
+		try:
+			if (giffound == -1) & (jpgfound == -1) & (pngfound == -1) & (pdffound == -1): 
+				print "Crawling\t",l,"\t",code
+				# loop through all of the anchors found on the page
+				# crawler only records the FIRST time it finds a link. If a link is on 20 pages
+				# it will still only show up once in the log.
+				for j in bs.findAll('a', {'href':True}):
+					try:
+						testresult = 0
+						absUrl = urlparse.urljoin(l, j['href'])
+						absUrl = absUrl.strip()
+						parsedUrl = urlparse.urlparse(absUrl)
+						# check for any images that snuck in via a link
+						giffound = absUrl.find('.gif')
+						jpgfound = absUrl.find('.jpg')
+						pngfound = absUrl.find('.png')
+						if (giffound == -1) & (jpgfound == -1) & (pngfound == -1):
+							filetype = 1
 						else:
-							counter = counter + 1
-				except:
-					pass
+							filetype = 2
+						if parsedUrl.port == 80:
+							hostUrl = parsedUrl.netloc[:-3]
+						else:
+							hostUrl = parsedUrl.netloc
+							absUrl = urlparse.urlunparse((parsedUrl.scheme, hostUrl, parsedUrl.path, parsedUrl.params, parsedUrl.query, parsedUrl.fragment))
+						if (parsedUrl.scheme == 'http') & \
+						((parsedUrl.netloc.endswith('.' + hostRoot)) | (parsedUrl.netloc == hostRoot)) & \
+						(absUrl not in linkz) & (filetype == 1):
+							tester = absUrl.find('#')
+							if tester == -1:
+								cleanUrl = absUrl.strip()
+								print '\t' + cleanUrl + '\tpage'
+								linkz.append(cleanUrl)
+								counter = counter + 1
+							else:
+								counter = counter + 1
+					except:
+						pass
 			
-# now to try to grab some images on the same page
-# the crawler records EVERY place images are found, not just the first. Long story, but we needed this at Portent.
-			bsi = BeautifulSoup(src, parseOnlyThese=imgs)
-			for i in bsi.findAll('img', {'src':True}):
-				absUrl = urlparse.urljoin(l, i['src'])
-				parsedUrl = urlparse.urlparse(absUrl)
-				conn = urllib2.urlopen(absUrl) # get the url
-				icode = conn.code # read response code 
-				try:
-					if parsedUrl.port == 80:
-						hostUrl = parsedUrl.netloc[:-3]
-					else:
-						hostUrl = parsedUrl.netloc
-					absUrl = urlparse.urlunparse((parsedUrl.scheme, hostUrl, parsedUrl.path, parsedUrl.params, parsedUrl.query, parsedUrl.fragment))
-					if (parsedUrl.scheme == 'http') & \
-						((parsedUrl.netloc.endswith('.' + hostRoot)) | (parsedUrl.netloc == hostRoot)):
-						cleanUrl = absUrl.strip()
-						cleanUrl = cleanUrl.replace('&','&amp;')
-						print '\t',cleanUrl,'\timage','\t',icode
-						imgz.append(cleanUrl)
-						counter = counter + 1
-				except:
-					print sys.exc_info()
-					pass
+	# now to try to grab some images on the same page
+	# the crawler records EVERY place images are found, not just the first. Long story, but we needed this at Portent.
+				bsi = BeautifulSoup(src, parseOnlyThese=imgs)
+				for i in bsi.findAll('img', {'src':True}):
+					absUrl = urlparse.urljoin(l, i['src'])
+					parsedUrl = urlparse.urlparse(absUrl)
+					conn = urllib2.urlopen(absUrl) # get the url
+					icode = conn.code # read response code 
+					try:
+						if parsedUrl.port == 80:
+							hostUrl = parsedUrl.netloc[:-3]
+						else:
+							hostUrl = parsedUrl.netloc
+						absUrl = urlparse.urlunparse((parsedUrl.scheme, hostUrl, parsedUrl.path, parsedUrl.params, parsedUrl.query, parsedUrl.fragment))
+						if (parsedUrl.scheme == 'http') & \
+							((parsedUrl.netloc.endswith('.' + hostRoot)) | (parsedUrl.netloc == hostRoot)):
+							cleanUrl = absUrl.strip()
+							cleanUrl = cleanUrl.replace('&','&amp;')
+							print '\t',cleanUrl,'\timage','\t',icode
+							imgz.append(cleanUrl)
+							counter = counter + 1
+					except:
+						print sys.exc_info() # debugging only disable this if you want clean output
+						pass
+		except:
+			print sys.exc_info() # debugging only disable this if you want clean output
+			pass
+	except URLError, e:
+		if hasattr(e, 'reason'):
+			print 'Reason: ', e.reason
+			pass
+		elif hasattr(e, 'code'):
+			print "Crawling\t",l,"\t", e.code
+			pass
+		else:
+			pass
 	except:
-		print sys.exc_info()
+		print sys.exc_info() # debugging only disable this if you want clean output
 		pass
-
-
 print "Completed at ",strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()),"\n\n\n",counter," urls in ", (time() - start)
